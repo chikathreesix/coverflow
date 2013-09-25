@@ -8,6 +8,7 @@ var imageArr = new Array();
 var coverflow;
 var currentIndex = -1;
 var prevTouchX;
+var isMoving = false;
 
 
 var ImageStatus = {
@@ -42,9 +43,15 @@ function init(){
 	}
 	
 	
-	document.addEventListener("touchstart", touchStartAction, false);
-	document.addEventListener("touchmove", touchMoveAction, false);
-	document.addEventListener("touchend", touchEndAction, false);
+  if(/iPhone|iPad|iPod|android/i.test(navigator.userAgent)){
+    document.addEventListener("touchstart", touchStartAction, false);
+    document.addEventListener("touchmove", touchMoveAction, false);
+    document.addEventListener("touchend", touchEndAction, false);
+  }else{
+    document.addEventListener("mousedown", touchStartAction, false);
+    document.addEventListener("mousemove", touchMoveAction, false);
+    document.addEventListener("mouseup", touchEndAction, false);
+  }
 	
 	window.addEventListener("resize", resizeAction, false);
 	
@@ -59,25 +66,34 @@ function resizeAction(event){
 
 function touchStartAction(event){
 	event.preventDefault();
-	prevTouchX = event.touches[0].pageX;
+  var touchObj = (event.touches) ? event.touches[0] : event;
+	prevTouchX = touchObj.pageX;
+
+  isMoving = true;
 }
 
 function touchMoveAction(event){
+  if(!isMoving){
+    return;
+  }
+
 	event.preventDefault();
-	var diffX = event.touches[0].pageX - prevTouchX;
+  var touchObj = (event.touches) ? event.touches[0] : event;
+
+	var diffX = touchObj.pageX - prevTouchX;
 	var diffIndex =  Math.floor(Math.abs(diffX) / 60);
 	if(diffX < 0) diffIndex *= -1;
 	tracer.innerHTML = diffX;
 	if(diffIndex >= 1 || diffIndex <= -1){
-		prevTouchX = event.touches[0].pageX;
+		prevTouchX = touchObj.pageX;
 		tracer.innerHTML += " "+ Number(currentIndex - diffIndex);
 		focusImage(currentIndex - diffIndex);
 	}
 }
 
 function touchEndAction(event){
+  isMoving = false;
 	event.preventDefault();
-	
 }
 
 
